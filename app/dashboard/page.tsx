@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import RenderUsersSection from "./components/RenderUsersSection";
 import RenderOverviewSection from "./components/RenderOverviewSection";
-import RenderMessagesSection from "./components/RenderMessagesSection";
+// import RenderMessagesSection from "./components/RenderMessagesSection";
 import RenderPromptsSection from "./components/RenderPromptsSection";
 
 const AdminDashboard = () => {
@@ -63,7 +63,7 @@ const AdminDashboard = () => {
       <div className="ml-64 p-8">
         {activeSection === "overview" && <RenderOverviewSection />}
         {activeSection === "users" && <RenderUsersSection />}
-        {activeSection === "messages" && <RenderMessagesSection />}
+        {/* {activeSection === "messages" && <RenderMessagesSection />} */}
         {activeSection === "prompts" && <RenderPromptsSection />}
       </div>
     </div>
