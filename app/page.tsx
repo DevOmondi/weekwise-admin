@@ -1,15 +1,65 @@
 "use client";
 import React, { useState } from "react";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 import { LogIn } from "lucide-react";
+// import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e: { preventDefault: () => void }) => {
+  const router = useRouter();
+
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
+    setIsLoading(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
     // Handle login logic here
+
+    const login_details = {
+      email: email,
+      password: password,
+    };
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(login_details),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Something went wrong");
+      }
+
+      const data = await response.json();
+      setSuccessMessage("Logging you in shortly :)");
+      console.log("API Response:", data);
+      sessionStorage.setItem('token', data?.token)
+      // window.location.href = "/dashboard";
+      router.push("/dashboard");
+    } catch (error) {
+      // Type guard to check if error is an instance of Error
+      if (error instanceof Error) {
+        setErrorMessage(error.message || "Failed to Log you in");
+      } else {
+        // Fallback for unknown error types
+        setErrorMessage("An unknown error occurred");
+      }
+    } finally {
+      setIsLoading(false);
+    }
     console.log("Login attempted with:", { email, password });
   };
 
@@ -18,12 +68,12 @@ const LoginPage = () => {
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
         {/* Logo Section */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16  mb-4">
+          <div className="inline-flex items-center justify-center w-24 h-24  mb-4">
             <Image
               src="/weekwise_logo.png"
               alt="Weekwise logo"
-              width={200}
-              height={200}
+              width={400}
+              height={400}
             />
           </div>
           <h2 className="text-2xl font-bold text-gray-900">Admin Portal</h2>
@@ -32,6 +82,15 @@ const LoginPage = () => {
           </p>
         </div>
 
+        {/* Display error or success messages */}
+        {errorMessage && (
+          <div className="text-red-500 text-center text-sm">{errorMessage}</div>
+        )}
+        {successMessage && (
+          <div className="text-green-500 text-center text-sm">
+            {successMessage}
+          </div>
+        )}
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -89,13 +148,14 @@ const LoginPage = () => {
             </a>
           </div>
 
-          <button
+          <Button
             type="submit"
+            disabled={isLoading}
             className="w-full flex justify-center items-center gap-2 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
+            {isLoading ? "Hang tight..." : "Log In"}
             <LogIn className="w-4 h-4" />
-            Sign In
-          </button>
+          </Button>
         </form>
       </div>
     </div>

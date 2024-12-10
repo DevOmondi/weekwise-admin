@@ -1,3 +1,5 @@
+"use client";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -7,13 +9,12 @@ import {
 } from "@/components/ui/card";
 
 import {
-    Users,
-    MessageSquare,
-    AlertCircle,
-    DollarSign,
-    //   Search,
-   
-  } from "lucide-react";
+  Users,
+  MessageSquare,
+  AlertCircle,
+  DollarSign,
+  //   Search,
+} from "lucide-react";
 
 import {
   LineChart,
@@ -26,6 +27,8 @@ import {
   Legend,
 } from "recharts";
 
+import { fetchUsersCount } from "@/utils/fetchUsersCount";
+
 // Combined users and revenue data
 const performanceData = [
   { month: "Jan", users: 1200, revenue: 40000 },
@@ -37,6 +40,15 @@ const performanceData = [
 ];
 
 const RenderOverviewSection = () => {
+  const [userCount, setUserCount] = useState(null);
+  useEffect(() => {
+    const getUsersCount = async () => {
+      const count = await fetchUsersCount();
+      setUserCount(count);
+    };
+
+    getUsersCount();
+  }, []);
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-4 gap-6">
@@ -47,8 +59,12 @@ const RenderOverviewSection = () => {
                 <p className="text-sm font-medium text-gray-600">
                   Active Users
                 </p>
-                <p className="text-2xl font-bold">3,142</p>
-                <p className="text-sm text-green-600">+12% this month</p>
+                {/* <p>3,142</p> */}
+                {userCount !== null ? (
+                  <p className="text-2xl font-bold">{userCount}</p>
+                ) : (
+                  <p>Loading...</p>
+                )}
               </div>
               <Users className="w-8 h-8 text-blue-500" />
             </div>
@@ -60,10 +76,9 @@ const RenderOverviewSection = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
-                  Monthly Revenue
+                  Yearly Revenue
                 </p>
-                <p className="text-2xl font-bold">$90,429</p>
-                <p className="text-sm text-green-600">+8% this month</p>
+                {/* <p className="text-2xl font-bold">$90,429</p> */}
               </div>
               <DollarSign className="w-8 h-8 text-green-500" />
             </div>
@@ -77,8 +92,7 @@ const RenderOverviewSection = () => {
                 <p className="text-sm font-medium text-gray-600">
                   Success Rate
                 </p>
-                <p className="text-2xl font-bold">99.2%</p>
-                <p className="text-sm text-yellow-600">-0.3% this week</p>
+                {/* <p className="text-2xl font-bold">99.2%</p> */}
               </div>
               <MessageSquare className="w-8 h-8 text-purple-500" />
             </div>
@@ -90,8 +104,7 @@ const RenderOverviewSection = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Churn Rate</p>
-                <p className="text-2xl font-bold">2.4%</p>
-                <p className="text-sm text-red-600">+0.5% this month</p>
+                {/* <p className="text-2xl font-bold">2.4%</p> */}
               </div>
               <AlertCircle className="w-8 h-8 text-red-500" />
             </div>
