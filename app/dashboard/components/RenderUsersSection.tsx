@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -9,39 +9,86 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { fetchUsersDetails } from "@/utils/fetchUsersDetails";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-// Define users data
-const users = [
-  {
-    id: 1,
-    name: "Sarah Johnson",
-    email: "sarah.j@example.com",
-    status: "active",
-    goal: "Run a marathon",
-    progress: "6/52",
-    subscription: {
-      status: "active",
-      startDate: "2024-01-15",
-      nextBilling: "2025-01-15",
-    },
-  },
-  {
-    id: 2,
-    name: "Mike Chen",
-    email: "mike.c@example.com",
-    status: "paused",
-    goal: "Write a novel",
-    progress: "12/52",
-    subscription: {
-      status: "paused",
-      startDate: "2024-01-01",
-      nextBilling: "2025-01-01",
-    },
-  },
-];
+interface User {
+  id: number;
+  email: string;
+  prompt: string;
+  subscriptionStatus: "ACTIVE" | null;
+  name: string;
+  progress: number;
+}
 
 const RenderUsersSection = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [users, setUsers] = useState<User[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    const getUsersCount = async () => {
+      const users = await fetchUsersDetails();
+      setUsers(users);
+    };
+
+    getUsersCount();
+  }, []);
+
+  // Filter users based on search term
+  const filteredUsers = users.filter(
+    (user) =>
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentUsers = filteredUsers.slice(startIndex, endIndex);
+
+  // Handle page changes
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+
+  // Generate page numbers array
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
+
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push("...");
+        pageNumbers.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pageNumbers.push(1);
+        pageNumbers.push("...");
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pageNumbers.push(i);
+        }
+      } else {
+        pageNumbers.push(1);
+        pageNumbers.push("...");
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push("...");
+        pageNumbers.push(totalPages);
+      }
+    }
+    return pageNumbers;
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -86,16 +133,16 @@ const RenderUsersSection = () => {
                 <th className="text-left p-4 font-medium text-gray-600">
                   Status
                 </th>
-                <th className="text-left p-4 font-medium text-gray-600">
+                {/* <th className="text-left p-4 font-medium text-gray-600">
                   Subscription
-                </th>
+                </th> */}
                 <th className="text-left p-4 font-medium text-gray-600">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => (
+              {currentUsers.map((user) => (
                 <tr key={user.id} className="border-b hover:bg-gray-50">
                   <td className="p-4">
                     <div>
@@ -105,29 +152,19 @@ const RenderUsersSection = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="p-4">{user.goal}</td>
-                  <td className="p-4">{user.progress}</td>
+                  <td className="p-4">{user.prompt}</td>
+                  <td className="p-4">{user.progress}/52</td>
                   <td className="p-4">
                     <span
                       className={`px-2 py-1 rounded-full text-xs ${
-                        user.status === "active"
+                        user.subscriptionStatus === "ACTIVE"
                           ? "bg-green-100 text-green-800"
                           : "bg-yellow-100 text-yellow-800"
                       }`}
                     >
-                      {user.status === "active" ? "● " : "○ "}
-                      {user.status}
+                      {user.subscriptionStatus === "ACTIVE" ? "● " : "○ "}
+                      {user.subscriptionStatus}
                     </span>
-                  </td>
-                  <td className="p-4">
-                    <div>
-                      <div className="text-sm font-medium">
-                        Next billing: {user.subscription.nextBilling}
-                      </div>
-                      <div className="text-xs text-gray-600">
-                        Since: {user.subscription.startDate}
-                      </div>
-                    </div>
                   </td>
                   <td className="p-4">
                     <div className="flex gap-2">
@@ -143,6 +180,47 @@ const RenderUsersSection = () => {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="mt-4 flex items-center justify-between border-t pt-4">
+          <div className="text-sm text-gray-600">
+            Showing {startIndex + 1} to{" "}
+            {Math.min(endIndex, filteredUsers.length)} of {filteredUsers.length}{" "}
+            users
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+
+            {getPageNumbers().map((pageNum, index) => (
+              <Button
+                key={index}
+                variant={pageNum === currentPage ? "default" : "outline"}
+                size="sm"
+                onClick={() => typeof pageNum === 'number' && handlePageChange(pageNum)}
+                disabled={pageNum === "..."}
+                className="min-w-[32px]"
+              >
+                {pageNum}
+              </Button>
+            ))}
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

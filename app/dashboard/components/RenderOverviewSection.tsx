@@ -76,7 +76,7 @@ const RenderOverviewSection = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
-                  Yearly Revenue
+                  Monthly Revenue
                 </p>
                 {/* <p className="text-2xl font-bold">$90,429</p> */}
               </div>
