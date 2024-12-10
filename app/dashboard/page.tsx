@@ -1,7 +1,9 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Brain,
+  LogOutIcon,
   Settings,
   Users,
   MessageSquare,
@@ -16,6 +18,8 @@ import RenderPromptsSection from "./components/RenderPromptsSection";
 const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState("overview");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const router = useRouter();
 
   const navigationItems = [
     {
@@ -42,6 +46,10 @@ const AdminDashboard = () => {
     setIsMobileMenuOpen(false);
   };
 
+  const handleLogout = () => {
+    sessionStorage.removeItem("token");
+    router.push("/");
+  };
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile Header */}
@@ -63,7 +71,10 @@ const AdminDashboard = () => {
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => setIsMobileMenuOpen(false)} />
+        <div
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
       )}
 
       {/* Sidebar - Desktop */}
@@ -86,6 +97,13 @@ const AdminDashboard = () => {
               {item.label}
             </button>
           ))}
+          <button
+            onClick={() => handleLogout()}
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left text-gray-600 hover:bg-gray-50 hover:bg-blue-50 text-blue-700"
+          >
+            <LogOutIcon className="w-4 h-4" />
+            Logout
+          </button>
         </nav>
       </div>
 
@@ -110,6 +128,13 @@ const AdminDashboard = () => {
               {item.label}
             </button>
           ))}
+          <button
+            onClick={() => handleLogout()}
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left text-gray-600 hover:bg-gray-50 hover:bg-blue-50 text-blue-700"
+          >
+            <LogOutIcon className="w-4 h-4" />
+            Logout
+          </button>
         </nav>
       </div>
 
